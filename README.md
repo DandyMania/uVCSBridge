@@ -1,8 +1,8 @@
 uVCSBridge
 ==============
 
-UnityからTotroiseSVN(or Git)を呼び出すためのエディタ拡張
-SVN(or Git)のコンソール版がインストールされてればアイコンオーバーレイも対応
+- UnityからTotroiseSVN(or Git)を呼び出すためのエディタ拡張
+- SVN(or Git)のコンソール版がインストールされてればUnity上のプロジェクトビューにオーバーレイアイコンが表示されます
 
 - Qiita記事
 http://qiita.com/DandyMania/items/9f75ba11893365c9c2fe
