@@ -615,13 +615,13 @@ public class uVCSBridge : MonoBehaviour
 	[MenuItem("Assets/uVCSBridge/Update", false, 60)]
 	public static void update()
 	{
-        if (Settings.VcsType == VCSType.SVN)
+        if (Settings.VcsType == VCSType.GIT )
         {
-            execTortoiseProc("update");
+            execTortoiseProc("pull");
         }
         else
         {
-            execTortoiseProc("pull");
+            execTortoiseProc("update");
         }
 	}
 
@@ -646,10 +646,10 @@ public class uVCSBridge : MonoBehaviour
 
 
     [MenuItem("Assets/uVCSBridge/Log", false, 80)]
-	public static void log()
-	{
-		execTortoiseProc("log");
-	}
+    public static void log()
+    {
+        execTortoiseProc("log");
+    }
 
 	// Unity標準の仕様がちょっと気に入らないので。。。
     [MenuItem("Assets/Open in Explorer", false, 60)]
@@ -725,39 +725,65 @@ public class uVCSBridge : MonoBehaviour
     /// TortoiseProc実行　.metaファイルも面倒みる。
 	/// </summary>
 	private static void execTortoiseProc(string command)
-	{
-		string filepath = getFullPath();
-		Debug.Log(command + ":" + filepath);
+    {
+        string filepath = getFullPath();
+        Debug.Log(command + ":" + filepath);
 
-		// ファイルの時はmetaファイルも一緒に
-		if (command != "rename")
-		{
-			filepath += "*" + filepath + ".meta";
-		}
+        // ファイルの時はmetaファイルも一緒に
+        if (command != "rename" && Settings.VcsType != VCSType.HG)
+        {
+            filepath += "*" + filepath + ".meta";
+        }
 
-		// フォルダの場合はmetaファイルを先にリネーム
-		if (command == "rename" && Directory.Exists(filepath))
-		{
-			string meta = filepath + ".meta";
-			// プロセスが終了するまで待つ
-			System.Diagnostics.Process pmeta = new System.Diagnostics.Process();
+        // フォルダの場合はmetaファイルを先にリネーム
+        if (command == "rename" && Directory.Exists(filepath))
+        {
+            string meta = filepath + ".meta";
+            // プロセスが終了するまで待つ
+            System.Diagnostics.Process pmeta = new System.Diagnostics.Process();
             pmeta.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
-			pmeta.StartInfo.Arguments = "/command:" + command + " /path:\"" + meta + "\"" + " /closeonend:0";
-			pmeta.Start();
-			pmeta.WaitForExit();
-		}
 
-		// プロセスが終了するまで待つ
-		System.Diagnostics.Process p = new System.Diagnostics.Process();
-        p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
-		p.StartInfo.Arguments = "/command:" + command + " /path:\"" + filepath + "\"" + " /closeonend:0";
+            if (Settings.VcsType == VCSType.HG)
+            {
+                pmeta.StartInfo.Arguments = command + @" """ + meta + @"""";
+            }
+            else
+            {
+                pmeta.StartInfo.Arguments = "/command:" + command + " /path:\"" + meta + "\"" + " /closeonend:0";
+            }
+            pmeta.Start();
+            pmeta.WaitForExit();
+        }
 
 
+        // HGのGUI向けコマンドは複数ファイル未対応？
+        if (Settings.VcsType == VCSType.HG)
+        {
+            // プロセスが終了するまで待つ
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+            p.StartInfo.Arguments = command + @" """ + filepath + ".meta" + @"""";
+            p.Start();
+            //p.WaitForExit();
+        }
 
-		p.Start();
-		p.WaitForExit();
+        {
+            // プロセスが終了するまで待つ
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+            if (Settings.VcsType == VCSType.HG)
+            {
+                p.StartInfo.Arguments = command + @" """ + filepath + @""""; ;
+            }
+            else
+            {
+                p.StartInfo.Arguments = "/command:" + command + " /path:\"" + filepath + "\"" + " /closeonend:0";
+            }
+            p.Start();
+            p.WaitForExit();
+        }
 
-	}
+    }
 
 	/// <summary>
 	/// ステータス取得
