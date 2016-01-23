@@ -1,14 +1,16 @@
 uVCSBridge
 ==============
 
-Unity����TotroiseSVN(or Git)���Ăяo�����߂̃G�f�B�^�g��
-SVN(or Git)�̃R���\�[���ł��C���X�g�[������Ă�΃A�C�R���I�[�o�[���C���Ή�
+UnityからTotroiseSVN(or Git)を呼び出すためのエディタ拡張
+SVN(or Git)のコンソール版がインストールされてればアイコンオーバーレイも対応
+
+- Qiita記事
 http://qiita.com/DandyMania/items/9f75ba11893365c9c2fe
 
-## �g����
+## 使い方
 
-1. �v���W�F�N�g�r���[�ŃA�Z�b�g�I�� or �A�Z�b�g�ȊO�̂Ƃ���ŉE�N���b�N �� uVCSBridge
-2. �R�}���h��I���������Ƃ�TortoiseSVN���N��
-3. �I�[�o�[���C�̏�Ԃ��X�V����Ƃ��́A�ċN��/�A�Z�b�g�I��/�A�Z�b�g�ȊO�̂Ƃ���ŉE�N���b�N
+1. プロジェクトビューでアセット選択 or アセット以外のところで右クリック → uVCSBridge
+2. コマンドを選択したあとはTortoiseSVNが起動
+3. オーバーレイの状態を更新するときは、再起動/アセット選択/アセット以外のところで右クリック
 
-��Edit/Preferences/uVCSBridge�ŃI�[�o�[���C�𖳌��ɏo���܂��B
+※Edit/Preferences/uVCSBridgeでオーバーレイを無効に出来ます。
