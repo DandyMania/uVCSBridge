@@ -26,6 +26,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 
@@ -210,6 +211,7 @@ public class uVCSBridge : MonoBehaviour
 	private const string ASSET_ROOT = REMOVE_STR + "/";
 
 
+	/*
 	// 選択中のオブジェクトの Assets フォルダからの相対パスを取得します
 	private static string SelectAssetPath
 	{
@@ -221,6 +223,33 @@ public class uVCSBridge : MonoBehaviour
 				return AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs[0]);
 			}
 			return ASSET_ROOT;
+		}
+	}
+	*/
+
+	// 選択中のオブジェクトの Assets フォルダからの相対パスを取得します
+	// 複数選択対応
+	private static List<string> SelectAssetPaths
+	{
+		get
+		{
+			var selectFileList = new List<string>();
+			// ファイルが選択されている時.
+			if (Selection.assetGUIDs != null && Selection.assetGUIDs.Length > 0)
+			{
+				foreach (var file in Selection.assetGUIDs)
+				{
+					selectFileList.Add(AssetDatabase.GUIDToAssetPath(file));
+				}
+			}
+
+			if (selectFileList.Count == 0)
+			{
+				selectFileList.Add(ASSET_ROOT);
+			}
+
+
+			return selectFileList;
 		}
 	}
 
@@ -237,11 +266,19 @@ public class uVCSBridge : MonoBehaviour
 	/// プロジェクトビューで選択中のファイルのフルパス取得
 	/// </summary>
 	/// <returns></returns>
-	private static string getFullPath()
+	private static List<string> getFullPaths()
 	{
-		var startIndex = SelectAssetPath.LastIndexOf(REMOVE_STR);
-		var assetPath = SelectAssetPath.Remove(startIndex, REMOVE_STR.Length);
-		return Application.dataPath + assetPath;
+
+		var selectFileList = new List<string>();
+
+		foreach (var file in SelectAssetPaths)
+		{
+			var startIndex = file.LastIndexOf(REMOVE_STR);
+			var assetPath = file.Remove(startIndex, REMOVE_STR.Length);
+			selectFileList.Add(Application.dataPath + assetPath);
+		}
+
+		return selectFileList;
 	}
 
 
@@ -574,9 +611,9 @@ public class uVCSBridge : MonoBehaviour
 		    // ステータス更新
 		    //var current = Event.current;
 		    //if (current.type == EventType.MouseDown)
-		    if (IsSelectAsset && SelectAssetPath != "")
+			if (IsSelectAsset && SelectAssetPaths[0] != "")
 		    {
-			    VCSStatusUpdate(SelectAssetPath);
+			    VCSStatusUpdate(SelectAssetPaths[0]);
 		    }
 
 		    var asset = AssetDatabase.GUIDToAssetPath(guid);
@@ -662,7 +699,7 @@ public class uVCSBridge : MonoBehaviour
 		p.StartInfo.UseShellExecute = false;    //シェル機能を使用しない
 		p.StartInfo.RedirectStandardOutput = false; // 標準出力をリダイレクト
 
-		string path = getFullPath();
+		string path = getFullPaths()[0];
 		path = path.Replace("/","\\");
 
 		if (Directory.Exists(path))
@@ -730,13 +767,21 @@ public class uVCSBridge : MonoBehaviour
 
 		try
 		{
-			string filepath = getFullPath();
+			List<string> filepathArray = getFullPaths();
+			string filepath = filepathArray[0];
 			Debug.Log(command + ":" + filepath);
 
-			// ファイルの時はmetaファイルも一緒に
+
 			if (command != "rename" && Settings.VcsType != VCSType.HG)
 			{
-				filepath += "*" + filepath + ".meta";
+				// 複数ファイル対応
+				filepath = "";
+				foreach (var file in filepathArray)
+				{
+					filepath += file;
+					// ファイルの時はmetaファイルも一緒に
+					filepath += "*" + file + ".meta*";
+				}
 			}
 
 			// フォルダの場合はmetaファイルを先にリネーム
@@ -791,7 +836,7 @@ public class uVCSBridge : MonoBehaviour
 		catch
 		{
 			// Tortoiseが無い場合とりあえずコンソール起動しとく
-			string filepath = getFullPath();
+			string filepath = getFullPaths()[0];
 			// プロセスが終了するまで待つ
 			System.Diagnostics.Process p = new System.Diagnostics.Process();
 			p.StartInfo.FileName = "cmd";
