@@ -164,7 +164,7 @@ public class uVCSBridge : MonoBehaviour
             Reset();
             // ステータス更新
             VCSStatusUpdate(ASSET_ROOT_DIR);
-            ProjectWindow.Repaint();
+            
         }
     }
 
@@ -318,9 +318,9 @@ public class uVCSBridge : MonoBehaviour
 	};
     static string[] StatusString = { "-", "?", "M", "A", "C", "D" };
     
-    static string[] StatusIconString = { "o", "?", "!", "+", "!?", "x" };
+    static string[] StatusIconString = { "V", "?", "!", "+", "!?", "x" };
 
-    static Color[] StatusIconColor = {  new Color(0, 1, 0, 0.5f), new Color(1, 1, 1, 0.5f), new Color(1, 0, 0, 0.5f),
+    static Color[] StatusIconColor = {  new Color(0, 1, 0, 0.5f), new Color(0.5f, 0.5f, 0.5f, 0.5f), new Color(1, 0, 0, 0.5f),
                                         new Color(0, 0, 1, 0.5f),new Color(1, 1, 0, 0.5f),new Color(1, 0, 0, 0.5f)
                                      };
 
@@ -354,7 +354,7 @@ public class uVCSBridge : MonoBehaviour
 	private static void ShowStatusLabel(VCSStatus status, Rect selectionRect)
 	{
 		// アイコンの位置
-		const int size = 15;
+		const int size = 13;
 		var pos = selectionRect;
 		pos.y = selectionRect.position.y;
 		pos.x = selectionRect.position.x;
@@ -420,10 +420,6 @@ public class uVCSBridge : MonoBehaviour
 
 	private static void VCSStatusUpdate(string dataPath)
 	{
-
-		//var activePath = AssetDatabase.GUIDToAssetPath(guid);
-
-
 		// 既に更新済み
 		if (dataPath == svnupdatepath)
 		{
@@ -596,6 +592,8 @@ public class uVCSBridge : MonoBehaviour
 
 		svnupdatepath = dataPath;
 
+        ProjectWindow.Repaint();
+
 	}
 
 	/// <summary>
@@ -650,7 +648,58 @@ public class uVCSBridge : MonoBehaviour
 	/// 右クリックメニュー
 	/// </summary>
     ///---------------------------------------------------------------------
-	[MenuItem("Assets/uVCSBridge/Update", false, 60)]
+    static bool IsManaged()
+    {
+        List<string> filepathArray = SelectAssetPaths;
+        // 複数ファイル対応
+        foreach (var asset in filepathArray)
+        {
+
+            if (FileStatusMap.ContainsKey(asset))
+            {
+                VCSStatus status = (VCSStatus)FileStatusMap[asset];
+                if (status == VCSStatus.UNMANAGE)
+                {
+                    return false;
+                }
+            }
+            else if (FolderStatusMap.ContainsKey(asset))
+            {
+                VCSStatus status = (VCSStatus)FolderStatusMap[asset];
+                if (status == VCSStatus.UNMANAGE)
+                {
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+
+
+    /// <summary>
+    /// 追加
+    /// </summary>
+    /// <returns></returns>
+    [MenuItem("Assets/uVCSBridge/Add", true)]
+    static bool enableadd()
+    {
+        return !IsManaged();
+    }
+
+    [MenuItem("Assets/uVCSBridge/Add", false, 60)]
+    public static void add()
+    {
+        execTortoiseProc("add");
+    }
+
+
+    /// <summary>
+    /// 更新
+    /// </summary>
+    [MenuItem("Assets/uVCSBridge/Update", false, 80)]
 	public static void update()
 	{
         if (Settings.VcsType == VCSType.GIT )
@@ -664,11 +713,12 @@ public class uVCSBridge : MonoBehaviour
 	}
 
 
-    [MenuItem("Assets/uVCSBridge/Commit", false, 60)]
+    [MenuItem("Assets/uVCSBridge/Commit", false, 80)]
 	public static void commit()
 	{
 		execTortoiseProc("commit");
 	}
+
 
 
     [MenuItem("Assets/uVCSBridge/Push", true)]
@@ -676,68 +726,84 @@ public class uVCSBridge : MonoBehaviour
     {
         return (Settings.VcsType != VCSType.SVN);
     }
-    [MenuItem("Assets/uVCSBridge/Push", false, 60)]
+    [MenuItem("Assets/uVCSBridge/Push", false, 80)]
     public static void push()
     {
         execTortoiseProc("push");
     }
 
 
+    /// <summary>
+    /// ログ
+    /// </summary>
+    [MenuItem("Assets/uVCSBridge/Log", true)]
+    static bool enablelog()
+    {
+        return IsManaged();
+    }
     [MenuItem("Assets/uVCSBridge/Log", false, 80)]
     public static void log()
     {
         execTortoiseProc("log");
     }
 
-	// Unity標準の仕様がちょっと気に入らないので。。。
-    [MenuItem("Assets/Open in Explorer", false, 60)]
-	public static void explorer()
-	{
-		System.Diagnostics.Process p = new System.Diagnostics.Process();
-		p.StartInfo.FileName = "explorer.exe";
-		p.StartInfo.CreateNoWindow = true;  // コンソール・ウィンドウを開かない
-		p.StartInfo.UseShellExecute = false;    //シェル機能を使用しない
-		p.StartInfo.RedirectStandardOutput = false; // 標準出力をリダイレクト
 
-		string path = getFullPaths()[0];
-		path = path.Replace("/","\\");
 
-		if (Directory.Exists(path))
-		{
-			// フォルダ
-			p.StartInfo.Arguments = @"""" + path + @"""";
-		}
-		else
-		{
-			// ファイル
-			p.StartInfo.Arguments = "/select," + @"""" + path + @"""";
-		}		
-		
-		p.Start();
-		//p.WaitForExit();
-	}
 
+
+
+    /// <summary>
+    /// クリーンナップ
+    /// </summary>
+    ///     
+    [MenuItem("Assets/uVCSBridge/CleanUp", true)]
+    static bool enableclean()
+    {
+        return IsManaged();
+    }
 
     [MenuItem("Assets/uVCSBridge/CleanUp", false, 80)]
-	public static void clean()
-	{
-		execTortoiseProc("cleanup");
-	}
+    public static void clean()
+    {
+        execTortoiseProc("cleanup");
+    }
 
 
 
-    [MenuItem("Assets/uVCSBridge/Add", false, 100)]
-	public static void add()
-	{
-		execTortoiseProc("add");
-	}
+
+
+
+
+
+    /// <summary>
+    /// 元に戻す
+    /// </summary>
+    /// <returns></returns>
+    [MenuItem("Assets/uVCSBridge/Undo", true)]
+    static bool enablerevert()
+    {
+        return IsManaged();
+    }
 
     [MenuItem("Assets/uVCSBridge/Undo", false, 100)]
-	public static void revert()
-	{
-		execTortoiseProc("revert");
-	}
+    public static void revert()
+    {
+        execTortoiseProc("revert");
+    }
 
+
+
+
+
+
+    /// <summary>
+    /// リネーム
+    /// </summary>
+    [MenuItem("Assets/uVCSBridge/Rename", true)]
+    static bool enablerename()
+    {
+        return IsManaged();
+    }
     [MenuItem("Assets/uVCSBridge/Rename", false, 100)]
 	public static void rename()
 	{
@@ -745,14 +811,50 @@ public class uVCSBridge : MonoBehaviour
 	}
 
 
+    /// <summary>
+    /// 削除
+    /// </summary>
+    [MenuItem("Assets/uVCSBridge/Delete", true)]
+    static bool enabledel()
+    {
+        return IsManaged();
+    }
 
     [MenuItem("Assets/uVCSBridge/Delete")]
-	public static void del()
-	{
-		execTortoiseProc("remove");
-	}
+    public static void del()
+    {
+        execTortoiseProc("remove");
+    }
 
 
+
+    // Unity標準の仕様がちょっと気に入らないので。。。
+    [MenuItem("Assets/Open in Explorer", false, 60)]
+    public static void explorer()
+    {
+        System.Diagnostics.Process p = new System.Diagnostics.Process();
+        p.StartInfo.FileName = "explorer.exe";
+        p.StartInfo.CreateNoWindow = true;  // コンソール・ウィンドウを開かない
+        p.StartInfo.UseShellExecute = false;    //シェル機能を使用しない
+        p.StartInfo.RedirectStandardOutput = false; // 標準出力をリダイレクト
+
+        string path = getFullPaths()[0];
+        path = path.Replace("/", "\\");
+
+        if (Directory.Exists(path))
+        {
+            // フォルダ
+            p.StartInfo.Arguments = @"""" + path + @"""";
+        }
+        else
+        {
+            // ファイル
+            p.StartInfo.Arguments = "/select," + @"""" + path + @"""";
+        }
+
+        p.Start();
+        //p.WaitForExit();
+    }
 
     ///---------------------------------------------------------------------
     /// VCS実行
@@ -838,6 +940,10 @@ public class uVCSBridge : MonoBehaviour
 				}
 				p.Start();
 				p.WaitForExit();
+
+
+                // 更新
+                VCSStatusUpdate(filepath);
 			}
 			return;
 		}
@@ -912,6 +1018,7 @@ public class uVCSBridge : MonoBehaviour
 			p.Start();
 			//p.WaitForExit();
             //string error = p.StandardError.ReadToEnd();
+
 
 			return p.StandardOutput.ReadToEnd(); // 標準出力の読み取り;
 
