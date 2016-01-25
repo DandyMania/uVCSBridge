@@ -511,7 +511,8 @@ public class uVCSBridge : MonoBehaviour
 
 			VCSStatus status = CheckStatus(fileStatus);
 
-			if (status == VCSStatus.DELETE)
+			// フォルダが消されたみたいに見えるので、、、
+			if (status != VCSStatus.NORMAL && status != VCSStatus.CONFRICT)
 			{
 				status = VCSStatus.EDIT;
 			}
@@ -596,9 +597,9 @@ public class uVCSBridge : MonoBehaviour
                 }
                 else
                 {
-                    if (asset != "")
+                    if (asset != "" && Settings.VcsType != VCSType.SVN)
                     {
-                        ShowStatusLabel(VCSStatus.NORMAL, selectionRect);
+                       ShowStatusLabel(VCSStatus.NORMAL, selectionRect);
                     }
                 }
             }
