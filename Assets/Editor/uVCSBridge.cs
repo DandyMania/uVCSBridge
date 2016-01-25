@@ -201,8 +201,8 @@ public class uVCSBridge : MonoBehaviour
     // 実行ファイル
     static string[] tortoiseProc = { "TortoiseProc.exe", "TortoiseGitProc.exe", "thg.exe" };
     static string[] consoleExe = { "svn", "git", "hg" };
-    static string[] consoleCmd = { "-v wc", "-v -u -s", "-v"};
-    static string[] consoleCmdDir = { "wc", "-v -u -s", "-v"};
+    static string[] consoleCmd = { "-v wc", "-v -u -s", "-A"};
+    static string[] consoleCmdDir = { "wc", "-v -u -s", ""};
 
 
 	// 選択中のオブジェクトが存在するかどうかを返します
@@ -317,8 +317,9 @@ public class uVCSBridge : MonoBehaviour
 		DELETE,     // 削除
 	};
     static string[] StatusString = { "-", "?", "M", "A", "C", "D" };
-    
-    static string[] StatusIconString = { "V", "?", "!", "+", "!?", "x" };
+    static string[] StatusStringHG = { "C", "?", "M", "A", "C", "R" };
+
+    static string[] StatusIconString = { "V", "?", "!", "+", "*", "x" };
 
     static Color[] StatusIconColor = {  new Color(0, 1, 0, 0.5f), new Color(0.5f, 0.5f, 0.5f, 0.5f), new Color(1, 0, 0, 0.5f),
                                         new Color(0, 0, 1, 0.5f),new Color(1, 1, 0, 0.5f),new Color(1, 0, 0, 0.5f)
@@ -334,10 +335,16 @@ public class uVCSBridge : MonoBehaviour
 	
 		str = str.TrimStart();
 
-        for (int i = 0; i < StatusString.GetLength(0);i++ )
+        string[] st = StatusString;
+        if (Settings.VcsType == VCSType.HG)
+        {
+            st = StatusStringHG;
+        }
+
+        for (int i = 0; i < st.GetLength(0); i++)
         {
             string status = str.Substring(0, 2);
-            int s = status.IndexOf(StatusString[i]);
+            int s = status.IndexOf(st[i]);
             if ( s > -1)
             {
                 return (VCSStatus)i;
