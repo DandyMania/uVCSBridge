@@ -543,7 +543,7 @@ public class uVCSBridge : MonoBehaviour
         if (FolderStatusMap.Count  == 0 && FileStatusMap.Count == 0)
         {
             IsUpdateSuccess = false;
-            Debug.LogError("uVCSBridge Status Update Error.");
+            Debug.LogWarning("uVCSBridge Status Update Error.");
         }
         else
         {
@@ -726,62 +726,87 @@ public class uVCSBridge : MonoBehaviour
 	/// </summary>
 	private static void execTortoiseProc(string command)
     {
-        string filepath = getFullPath();
-        Debug.Log(command + ":" + filepath);
 
-        // ファイルの時はmetaファイルも一緒に
-        if (command != "rename" && Settings.VcsType != VCSType.HG)
-        {
-            filepath += "*" + filepath + ".meta";
-        }
+		try
+		{
+			string filepath = getFullPath();
+			Debug.Log(command + ":" + filepath);
 
-        // フォルダの場合はmetaファイルを先にリネーム
-        if (command == "rename" && Directory.Exists(filepath))
-        {
-            string meta = filepath + ".meta";
-            // プロセスが終了するまで待つ
-            System.Diagnostics.Process pmeta = new System.Diagnostics.Process();
-            pmeta.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+			// ファイルの時はmetaファイルも一緒に
+			if (command != "rename" && Settings.VcsType != VCSType.HG)
+			{
+				filepath += "*" + filepath + ".meta";
+			}
 
-            if (Settings.VcsType == VCSType.HG)
-            {
-                pmeta.StartInfo.Arguments = command + @" """ + meta + @"""";
-            }
-            else
-            {
-                pmeta.StartInfo.Arguments = "/command:" + command + " /path:\"" + meta + "\"" + " /closeonend:0";
-            }
-            pmeta.Start();
-            pmeta.WaitForExit();
-        }
+			// フォルダの場合はmetaファイルを先にリネーム
+			if (command == "rename" && Directory.Exists(filepath))
+			{
+				string meta = filepath + ".meta";
+				// プロセスが終了するまで待つ
+				System.Diagnostics.Process pmeta = new System.Diagnostics.Process();
+				pmeta.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+
+				if (Settings.VcsType == VCSType.HG)
+				{
+					pmeta.StartInfo.Arguments = command + @" """ + meta + @"""";
+				}
+				else
+				{
+					pmeta.StartInfo.Arguments = "/command:" + command + " /path:\"" + meta + "\"" + " /closeonend:0";
+				}
+				pmeta.Start();
+				pmeta.WaitForExit();
+			}
 
 
-        // HGのGUI向けコマンドは複数ファイル未対応？
-        if (Settings.VcsType == VCSType.HG)
-        {
-            // プロセスが終了するまで待つ
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
-            p.StartInfo.Arguments = command + @" """ + filepath + ".meta" + @"""";
-            p.Start();
-            //p.WaitForExit();
-        }
+			// HGのGUI向けコマンドは複数ファイル未対応？
+			if (Settings.VcsType == VCSType.HG)
+			{
+				// プロセスが終了するまで待つ
+				System.Diagnostics.Process p = new System.Diagnostics.Process();
+				p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+				p.StartInfo.Arguments = command + @" """ + filepath + ".meta" + @"""";
+				p.Start();
+				//p.WaitForExit();
+			}
 
-        {
-            // プロセスが終了するまで待つ
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
-            if (Settings.VcsType == VCSType.HG)
-            {
-                p.StartInfo.Arguments = command + @" """ + filepath + @""""; ;
-            }
-            else
-            {
-                p.StartInfo.Arguments = "/command:" + command + " /path:\"" + filepath + "\"" + " /closeonend:0";
-            }
-            p.Start();
-            p.WaitForExit();
-        }
+			{
+				// プロセスが終了するまで待つ
+				System.Diagnostics.Process p = new System.Diagnostics.Process();
+				p.StartInfo.FileName = tortoiseProc[(int)Settings.VcsType];
+				if (Settings.VcsType == VCSType.HG)
+				{
+					p.StartInfo.Arguments = command + @" """ + filepath + @""""; ;
+				}
+				else
+				{
+					p.StartInfo.Arguments = "/command:" + command + " /path:\"" + filepath + "\"" + " /closeonend:0";
+				}
+				p.Start();
+				p.WaitForExit();
+			}
+			return;
+		}
+		catch
+		{
+			// Tortoiseが無い場合とりあえずコンソール起動しとく
+			string filepath = getFullPath();
+			// プロセスが終了するまで待つ
+			System.Diagnostics.Process p = new System.Diagnostics.Process();
+			p.StartInfo.FileName = "cmd";
+			p.StartInfo.WorkingDirectory = filepath;
+			//p.StartInfo.Arguments = " --version";
+			p.StartInfo.Arguments = command;
+			p.StartInfo.CreateNoWindow = false;  // コンソール・ウィンドウを開かない
+			p.StartInfo.UseShellExecute = false;    //シェル機能を使用しない
+			//p.StartInfo.RedirectStandardOutput = true; // 標準出力をリダイレクト
+			//p.StartInfo.RedirectStandardError = true;  // エラーリダイレクト →svnでコレ有効にすると無限ループ...
+
+			p.Start();
+
+			Debug.LogWarning("not find " + tortoiseProc[(int)Settings.VcsType]);
+			return;
+		}
 
     }
 
@@ -844,8 +869,6 @@ public class uVCSBridge : MonoBehaviour
 		{
             return "error";
 		}
-
-		return "";
 
 	}
 
