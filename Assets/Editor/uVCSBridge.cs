@@ -163,7 +163,7 @@ public class uVCSBridge : MonoBehaviour
             SaveSettings();
             Reset();
             // ステータス更新
-            VCSStatusUpdate(ASSET_ROOT);
+            VCSStatusUpdate(ASSET_ROOT_DIR);
             ProjectWindow.Repaint();
         }
     }
@@ -206,9 +206,9 @@ public class uVCSBridge : MonoBehaviour
 
 
 	// 選択中のオブジェクトが存在するかどうかを返します
-	private const string REMOVE_STR = "Assets";
-	
-	private const string ASSET_ROOT = REMOVE_STR + "/";
+	private const string ASSET_ROOT = "Assets";
+
+	private const string ASSET_ROOT_DIR = ASSET_ROOT + "/";
 
 
 	/*
@@ -222,7 +222,7 @@ public class uVCSBridge : MonoBehaviour
 			{
 				return AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs[0]);
 			}
-			return ASSET_ROOT;
+			return ASSET_ROOT_DIR;
 		}
 	}
 	*/
@@ -245,7 +245,7 @@ public class uVCSBridge : MonoBehaviour
 
 			if (selectFileList.Count == 0)
 			{
-				selectFileList.Add(ASSET_ROOT);
+				selectFileList.Add(ASSET_ROOT_DIR);
 			}
 
 
@@ -273,8 +273,8 @@ public class uVCSBridge : MonoBehaviour
 
 		foreach (var file in SelectAssetPaths)
 		{
-			var startIndex = file.LastIndexOf(REMOVE_STR);
-			var assetPath = file.Remove(startIndex, REMOVE_STR.Length);
+			var startIndex = file.LastIndexOf(ASSET_ROOT);
+			var assetPath = file.Remove(startIndex, ASSET_ROOT.Length);
 			selectFileList.Add(Application.dataPath + assetPath);
 		}
 
@@ -294,7 +294,7 @@ public class uVCSBridge : MonoBehaviour
         ReadSettings();
 
 		// SVNステータス更新
-		VCSStatusUpdate(ASSET_ROOT);
+		VCSStatusUpdate(ASSET_ROOT_DIR);
 	}
 
     // 設定切り替え後の状態リセット
@@ -467,8 +467,8 @@ public class uVCSBridge : MonoBehaviour
 			foreach (string fileStatus in files)
 			{
 				if (fileStatus == "") continue;
-				var sIndex = fileStatus.IndexOf(ASSET_ROOT);
-				if (sIndex == -1) sIndex = fileStatus.IndexOf(REMOVE_STR);
+				var sIndex = fileStatus.IndexOf(ASSET_ROOT_DIR);
+				if (sIndex == -1) sIndex = fileStatus.IndexOf(ASSET_ROOT);
 				if (sIndex == -1)
 				{
 					// ignoreとか。。。
@@ -531,8 +531,8 @@ public class uVCSBridge : MonoBehaviour
 		foreach (string fileStatus in changefiles)
 		{
 			if (fileStatus == "") continue;
-			var sIndex = fileStatus.IndexOf(ASSET_ROOT);
-			if (sIndex == -1) sIndex = fileStatus.IndexOf(REMOVE_STR);
+			var sIndex = fileStatus.IndexOf(ASSET_ROOT_DIR);
+			if (sIndex == -1) sIndex = fileStatus.IndexOf(ASSET_ROOT);
 			if (sIndex == -1) {
 				// ignoreとか。。。
 				continue;
@@ -555,10 +555,10 @@ public class uVCSBridge : MonoBehaviour
 			}
 
 			// ルートフォルダまで同じステータスに
-			filepath = filepath.Replace(ASSET_ROOT, "");
+			filepath = filepath.Replace(ASSET_ROOT_DIR, "");
 			var dirTree = filepath.Split('/');
 
-			string dirpath = ASSET_ROOT;
+			string dirpath = ASSET_ROOT_DIR;
 			foreach (var dir in dirTree)
 			{
 				dirpath += dir;
@@ -575,7 +575,7 @@ public class uVCSBridge : MonoBehaviour
 		}
 	
 		// アセットフォルダは消しとく。
-		FolderStatusMap.Remove(REMOVE_STR);
+		FolderStatusMap.Remove(ASSET_ROOT);
 
         // ステータス更新失敗したらしい。。
         if (FolderStatusMap.Count  == 0 && FileStatusMap.Count == 0)
@@ -779,8 +779,16 @@ public class uVCSBridge : MonoBehaviour
 				foreach (var file in filepathArray)
 				{
 					filepath += file;
-					// ファイルの時はmetaファイルも一緒に
-					filepath += "*" + file + ".meta*";
+					
+					string dir = file.Substring(file.LastIndexOf("/"));
+					if (dir != "/" + ASSET_ROOT)
+					{
+						// ファイルの時はmetaファイルも一緒に
+						filepath += "*" + file + ".meta";
+					}
+
+
+					filepath += "*";
 				}
 			}
 
@@ -865,9 +873,6 @@ public class uVCSBridge : MonoBehaviour
 	{
 		try
 		{
-			//var startIndex = Application.dataPath.LastIndexOf(REMOVE_STR);
-			//var workPath = Application.dataPath.Remove(startIndex, REMOVE_STR.Length);
-
 			string filepath = arg1;
 
 			// ファイルの時はmetaファイルも一緒に
