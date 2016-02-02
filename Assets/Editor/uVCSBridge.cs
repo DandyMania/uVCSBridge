@@ -199,7 +199,7 @@ public class uVCSBridge : MonoBehaviour
 
 
     // 実行ファイル
-    static string[] tortoiseProc = { "TortoiseProc.exe", "TortoiseGitProc.exe", "thg.exe" };
+    static string[] tortoiseProc = { "TortoiseProc", "TortoiseGitProc", "thg" };
     static string[] consoleExe = { "svn", "git", "hg" };
     static string[] consoleCmd = { "-v wc", "-v -u -s", "-A"};
     static string[] consoleCmdDir = { "wc", "-v -u -s", ""};
@@ -427,11 +427,7 @@ public class uVCSBridge : MonoBehaviour
 
 	private static void VCSStatusUpdate(string dataPath)
 	{
-		// 既に更新済み
-		if (dataPath == svnupdatepath)
-		{
-			return;
-		}
+
 
 		var path = dataPath;
 
@@ -442,6 +438,14 @@ public class uVCSBridge : MonoBehaviour
 			if (startIndex == -1) startIndex = path.Length;
 			path = path.Substring(0, startIndex);
 		}
+
+
+		// 既に更新済み
+		if (path == svnupdatepath)
+		{
+			return;
+		}
+
 
 		// 念のため最大数超えたら一旦クリア
         if (FileStatusMap.Count > 1024)
@@ -597,9 +601,9 @@ public class uVCSBridge : MonoBehaviour
 
 
 
-		svnupdatepath = dataPath;
+		svnupdatepath = path;
 
-        ProjectWindow.Repaint();
+        if( ProjectWindow ) ProjectWindow.Repaint();
 
 	}
 
@@ -950,6 +954,7 @@ public class uVCSBridge : MonoBehaviour
 
 
                 // 更新
+				VCSStatusUpdate(ASSET_ROOT_DIR);
                 VCSStatusUpdate(filepath);
 			}
 			return;
