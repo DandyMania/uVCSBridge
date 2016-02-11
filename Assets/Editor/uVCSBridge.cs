@@ -840,9 +840,15 @@ public class uVCSBridge : MonoBehaviour
 
 
     // Unity標準の仕様がちょっと気に入らないので。。。
+#if UNITY_EDITOR_WIN
     [MenuItem("Assets/Open in Explorer", false, 60)]
+#else
+        [MenuItem("Assets/Open Folder", false, 60)]
+#endif
     public static void explorer()
     {
+
+#if UNITY_EDITOR_WIN
         System.Diagnostics.Process p = new System.Diagnostics.Process();
         p.StartInfo.FileName = "explorer.exe";
         p.StartInfo.CreateNoWindow = true;  // コンソール・ウィンドウを開かない
@@ -865,6 +871,13 @@ public class uVCSBridge : MonoBehaviour
 
         p.Start();
         //p.WaitForExit();
+#else
+        string path = getFullPaths()[0];
+        if (path.IndexOf(".") != -1){
+            path = path.Substring(path.LastIndexOf("/"));
+        }
+        System.Diagnostics.Process.Start(path);
+#endif
     }
 
     ///---------------------------------------------------------------------
