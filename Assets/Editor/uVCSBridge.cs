@@ -273,7 +273,7 @@ public class uVCSBridge : MonoBehaviour
 
 		foreach (var file in SelectAssetPaths)
 		{
-			var startIndex = file.LastIndexOf(ASSET_ROOT);
+			var startIndex = file.IndexOf(ASSET_ROOT);
 			var assetPath = file.Remove(startIndex, ASSET_ROOT.Length);
 			selectFileList.Add(Application.dataPath + assetPath);
 		}
