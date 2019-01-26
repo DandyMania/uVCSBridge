@@ -127,7 +127,6 @@ public class uVCSBridge : MonoBehaviour
 
 
         // VCSの種類
-        //EditorGUILayout.LabelField("VCS Type" + "  ");
         VCSType newVcs = (VCSType)EditorGUILayout.EnumPopup("VCS Type", Settings.VcsType);
         if (newVcs != Settings.VcsType)
         {
@@ -689,7 +688,20 @@ public class uVCSBridge : MonoBehaviour
     }
 
 
+    const int MENU_PRIORITY = 900;
+   
 
+    /// <summary>
+    /// ステータス更新
+    /// </summary>
+    /// <returns></returns>
+    [MenuItem("Assets/uVCSBridge/Status Update", false, MENU_PRIORITY-20)]
+    public static void statusUpdate()
+    {
+        VCSStatusUpdate(ASSET_ROOT_DIR);
+    }
+    
+    
     /// <summary>
     /// 追加
     /// </summary>
@@ -700,7 +712,7 @@ public class uVCSBridge : MonoBehaviour
         return !IsManaged();
     }
 
-    [MenuItem("Assets/uVCSBridge/Add", false, 60)]
+    [MenuItem("Assets/uVCSBridge/Add", false, MENU_PRIORITY)]
     public static void add()
     {
         execTortoiseProc("add");
@@ -710,7 +722,7 @@ public class uVCSBridge : MonoBehaviour
     /// <summary>
     /// 更新
     /// </summary>
-    [MenuItem("Assets/uVCSBridge/Update", false, 80)]
+    [MenuItem("Assets/uVCSBridge/Update", false, MENU_PRIORITY)]
 	public static void update()
 	{
         if (Settings.VcsType == VCSType.GIT )
@@ -724,7 +736,7 @@ public class uVCSBridge : MonoBehaviour
 	}
 
 
-    [MenuItem("Assets/uVCSBridge/Commit", false, 80)]
+    [MenuItem("Assets/uVCSBridge/Commit", false, MENU_PRIORITY)]
 	public static void commit()
 	{
 		execTortoiseProc("commit");
@@ -737,7 +749,7 @@ public class uVCSBridge : MonoBehaviour
     {
         return (Settings.VcsType != VCSType.SVN);
     }
-    [MenuItem("Assets/uVCSBridge/Push", false, 80)]
+    [MenuItem("Assets/uVCSBridge/Push", false, MENU_PRIORITY)]
     public static void push()
     {
         execTortoiseProc("push");
@@ -752,7 +764,7 @@ public class uVCSBridge : MonoBehaviour
     {
         return IsManaged();
     }
-    [MenuItem("Assets/uVCSBridge/Log", false, 80)]
+    [MenuItem("Assets/uVCSBridge/Log", false, MENU_PRIORITY)]
     public static void log()
     {
         execTortoiseProc("log");
@@ -773,7 +785,7 @@ public class uVCSBridge : MonoBehaviour
         return IsManaged();
     }
 
-    [MenuItem("Assets/uVCSBridge/CleanUp", false, 80)]
+    [MenuItem("Assets/uVCSBridge/CleanUp", false, MENU_PRIORITY)]
     public static void clean()
     {
         execTortoiseProc("cleanup");
@@ -796,7 +808,7 @@ public class uVCSBridge : MonoBehaviour
         return IsManaged();
     }
 
-    [MenuItem("Assets/uVCSBridge/Undo", false, 100)]
+    [MenuItem("Assets/uVCSBridge/Undo", false, MENU_PRIORITY)]
     public static void revert()
     {
         execTortoiseProc("revert");
@@ -815,7 +827,7 @@ public class uVCSBridge : MonoBehaviour
     {
         return IsManaged();
     }
-    [MenuItem("Assets/uVCSBridge/Rename", false, 100)]
+    [MenuItem("Assets/uVCSBridge/Rename", false, MENU_PRIORITY)]
 	public static void rename()
 	{
 		execTortoiseProc("rename");
@@ -841,9 +853,9 @@ public class uVCSBridge : MonoBehaviour
 
     // Unity標準の仕様がちょっと気に入らないので。。。
 #if UNITY_EDITOR_WIN
-    [MenuItem("Assets/Open in Explorer", false, 60)]
+    [MenuItem("Assets/Open in Explorer", false, MENU_PRIORITY)]
 #else
-        [MenuItem("Assets/Open Folder", false, 60)]
+        [MenuItem("Assets/Open Folder", false, MENU_PRIORITY)]
 #endif
     public static void explorer()
     {
