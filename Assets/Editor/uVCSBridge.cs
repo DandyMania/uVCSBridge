@@ -318,7 +318,7 @@ public class uVCSBridge : MonoBehaviour
     static string[] StatusString = { "-", "?", "M", "A", "C", "D" };
     static string[] StatusStringHG = { "C", "?", "M", "A", "C", "R" };
 
-    static string[] StatusIconString = { "V", "?", "!", "+", "*", "x" };
+    static string[] StatusIconString = { "✓", "?", "!", "+", "*", "✗" };
 
     static Color[] StatusIconColor = {  new Color(0, 1, 0, 0.5f), new Color(0.5f, 0.5f, 0.5f, 0.5f), new Color(1, 0, 0, 0.5f),
                                         new Color(0, 0, 1, 0.5f),new Color(1, 1, 0, 0.5f),new Color(1, 0, 0, 0.5f)
